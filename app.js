@@ -17,7 +17,7 @@ const REG = [
   ['Greenland', 72, -40, /greenland/i], ['Cuba', 21.5, -79, /cuba|havana/i], ['Panama', 9, -80, /panama/i], ['Iraq', 33, 44, /iraq|baghdad/i],
   ['Africa', 10, 22, /sudan|congo|ethiopia|somalia|sahel|niger\b|mali\b|libya/i], ['Serbia · Kosovo', 43, 21, /serbia|kosovo/i], ['Armenia · Azerbaijan', 40, 46, /armenia|azerbaijan/i],
 ];
-const TYPES = [['STRIKES', /strike|attack|bomb|missile|drone|airstrike|\bhit\b|military action/i], ['CEASEFIRE', /ceasefire|truce|peace|deal|agreement|talks|end of|ends?\b/i], ['INVASION', /invade|invasion|occup|annex|troops|ground/i], ['NUCLEAR', /nuclear|nuke|warhead/i]];
+const TYPES = [['STRIKES', /strike|attack|bomb|missile|drone|airstrike|\bhit\b|military action/i], ['CEASEFIRE', /ceasefire|truce|peace|deal|agreement|talks/i], ['INVASION', /invade|invasion|occup|annex|troops|ground/i], ['NUCLEAR', /nuclear|nuke|warhead/i]];
 
 // ---------------------------------------------------------------- helpers
 function get(u, o = {}) {
@@ -94,9 +94,30 @@ function boot() {
 }
 
 // ---------------------------------------------------------------- clock + reveal
-setInterval(() => { $('#clock').textContent = new Date().toISOString().slice(11, 19) + ' UTC'; }, 1000);
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
 $$('.rv').forEach(el => io.observe(el));
+
+const seenCards = new Set();
+const stIO = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return; const el = e.target; el.classList.add('in'); stIO.unobserve(el);
+  if (el.dataset.id) seenCards.add(el.dataset.id);
+  setTimeout(() => el.style.setProperty('--d', '0s'), 1100 + parseFloat(el.style.getPropertyValue('--d') || 0) * 1000);
+}), { threshold: .06, rootMargin: '0px 0px -5% 0px' });
+function stagger(sel, root = document, step = .06) {
+  if (reduce) return;
+  $$(sel, root).forEach((el, i) => { if (el.classList.contains('in')) return; el.classList.add('st'); el.style.setProperty('--d', ((i % 9) * step).toFixed(2) + 's'); stIO.observe(el); });
+}
+stagger('.stats > div', document, .08); stagger('.steps li', document, .12); stagger('.fund .panel', document, .15); stagger('.faq details', document, .07);
+const prog = document.createElement('div'); prog.className = 'prog'; document.body.appendChild(prog);
+const heroL = $('.hero .hg > div'), heroR = $('.pcbox'); let sy = -1, sq = false;
+function onScroll() {
+  sq = false; const y = scrollY; if (y === sy) return; sy = y;
+  const max = document.documentElement.scrollHeight - innerHeight; prog.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`;
+  if (reduce || y > innerHeight * 1.3) return;
+  heroL.style.transform = `translateY(${(y * .28).toFixed(1)}px)`; heroL.style.opacity = Math.max(0, 1 - y / 620).toFixed(3);
+  heroR.style.transform = `translateY(${(y * .12).toFixed(1)}px) scale(${(1 - Math.min(.14, y / 3600)).toFixed(4)})`;
+}
+addEventListener('scroll', () => { if (!sq) { sq = true; requestAnimationFrame(onScroll); } }, { passive: true }); onScroll();
 
 // ---------------------------------------------------------------- the CRT (hero)
 const scr = document.createElement('canvas'); scr.width = 1024; scr.height = 768;
@@ -178,32 +199,36 @@ function stats() {
 }
 
 // ---------------------------------------------------------------- the map
-const map = { cv: $('#map'), pings: [], hover: null, t0: performance.now() };
+const map = { cv: $('#map'), pings: [], hover: null, t0: performance.now(), revT: 0 };
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { map.revT = performance.now() + 250; o.disconnect(); } }, { threshold: .25 }).observe($('#map'));
 function proj(lat, lon, W, H) { return [(lon + 180) / 360 * W, (78 - lat) / 140 * H]; }
 function buildPings() {
   const agg = new Map();
   for (const e of EV) for (const r of e.regions) { const a = agg.get(r) || { name: r, n: 0, v: 0, top: null }; a.n++; a.v += e.v24; if (!a.top || e.v24 > a.top.v24) a.top = e; agg.set(r, a); }
   const maxV = Math.max(1, ...[...agg.values()].map(a => a.v));
   map.pings = [...agg.values()].map(a => { const R = REG.find(r => r[0] === a.name); return { ...a, lat: R[1], lon: R[2], k: Math.sqrt(a.v / maxV) }; }).sort((a, b) => b.v - a.v);
+  const firstList = !$('#map-list .reg');
   $('#map-list').innerHTML = map.pings.map(p => `<button class="reg" data-r="${esc(p.name)}"><i></i><span>${esc(p.name)}</span><b>${p.n}</b><em>${usd(p.v)}</em></button>`).join('') || '<p class="dim">No live fronts right now.</p>';
+  if (firstList) stagger('#map-list .reg', document, .05);
 }
 function drawMap(now) {
   const cv = map.cv, r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), W = r.width, H = r.height;
   if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   const x = cv.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H);
   const cw = W / 200, ch = H / 82, t = (now - map.t0) / 1000;
+  const rv = reduce ? 1 : map.revT ? Math.max(0, Math.min(1, (now - map.revT) / 1500)) : 0, lim = rv * W * 1.08;
   const sweep = (t * .09 % 1.25) * W;
   x.strokeStyle = 'rgba(40,140,90,.12)'; x.lineWidth = 1;
   for (let i = 1; i < 12; i++) { x.beginPath(); x.moveTo(i * W / 12, 0); x.lineTo(i * W / 12, H); x.stroke(); }
   for (let j = 1; j < 5; j++) { x.beginPath(); x.moveTo(0, j * H / 5); x.lineTo(W, j * H / 5); x.stroke(); }
   for (let j = 0; j < 82; j++) { const row = LAND[j]; for (let i = 0; i < 200; i++) if (row[i] === 'X') {
-    const px = (i + .5) * cw, py = (j + .5) * ch, d = sweep - px, lit = d > 0 && d < 120 ? 1 - d / 120 : 0;
+    const px = (i + .5) * cw, py = (j + .5) * ch; if (px > lim) continue; const d = sweep - px, lit = (d > 0 && d < 120 ? 1 - d / 120 : 0) + (rv < 1 && lim - px < 40 ? 1 - (lim - px) / 40 : 0);
     x.fillStyle = `rgba(${70 + lit * 120 | 0},${200 + lit * 55 | 0},${140 + lit * 60 | 0},${.32 + lit * .6})`; x.fillRect(px - cw * .28, py - cw * .28, cw * .56, cw * .56);
   } }
   const g = x.createLinearGradient(sweep - 140, 0, sweep, 0); g.addColorStop(0, 'rgba(134,255,190,0)'); g.addColorStop(1, 'rgba(134,255,190,.16)'); x.fillStyle = g; x.fillRect(sweep - 140, 0, 140, H);
   x.fillStyle = 'rgba(134,255,190,.55)'; x.fillRect(sweep, 0, 1.5, H);
   for (const p of map.pings) {
-    const [px, py] = proj(p.lat, p.lon, W, H), R = 3 + p.k * 7, on = map.hover === p || st.reg === p.name;
+    const [px, py] = proj(p.lat, p.lon, W, H); if (px > lim - 30) continue; const pop = Math.min(1, (lim - 30 - px) / 90), R = (3 + p.k * 7) * pop, on = map.hover === p || st.reg === p.name;
     for (let k = 0; k < 3; k++) { const ph = ((t * .6 + k / 3 + p.k) % 1); x.strokeStyle = `rgba(255,61,46,${(1 - ph) * .7})`; x.lineWidth = 1.5; x.beginPath(); x.arc(px, py, R + ph * (18 + p.k * 26), 0, 7); x.stroke(); }
     x.shadowColor = '#ff3d2e'; x.shadowBlur = on ? 22 : 12; x.fillStyle = on ? '#fff' : '#ff4a38'; x.beginPath(); x.arc(px, py, R, 0, 7); x.fill(); x.shadowBlur = 0;
     if (on || p.k > .55) { x.font = '12px Silkscreen'; x.fillStyle = on ? '#fff' : 'rgba(255,200,190,.85)'; x.fillText(p.name.toUpperCase(), px + R + 6, py + 4); }
@@ -250,7 +275,7 @@ function card(e) {
   const m = e.lead, was = prevYes.get(m.id), flash = was != null && was !== m.yes ? (m.yes > was ? ' fl-up' : ' fl-dn') : '';
   prevYes.set(m.id, m.yes);
   const others = e.ms.filter(x => x !== m).slice(0, 3);
-  return `<article class="card${flash}" data-id="${e.id}" tabindex="0">
+  return `<article class="card${flash}${seenCards.has(e.id) || reduce ? '' : ' st'}" data-id="${e.id}" tabindex="0">
     <div class="c-top"><span class="c-reg">${esc([(e.regions[0] || 'World'), e.types[0]].filter(Boolean).join(' · '))}</span><span class="c-end">${esc(left(m.end || e.end))}</span></div>
     <h3>${esc(e.title)}</h3>
     <div class="c-lead"><div class="c-pct">${pct(m.yes)}<i>%</i></div><div class="c-meta"><span>${esc(e.ms.length > 1 ? m.label || m.yesName : m.yesName)}</span>${m.d1 ? `<b class="${m.d1 > 0 ? 'up' : 'dn'}">${m.d1 > 0 ? '▲' : '▼'} ${Math.abs(m.d1 * 100).toFixed(1)}</b>` : '<b class="fl">— 0.0</b>'}</div><svg class="spark" data-tok="${esc(m.tok || '')}" viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
@@ -274,6 +299,7 @@ function renderBoard() {
   el.innerHTML = a.length ? a.map(card).join('') : `<p class="empty">Nothing on this front right now. <button class="link" id="reset">Show every front</button></p>`;
   $('#reset')?.addEventListener('click', () => { Object.assign(st, { reg: 'ALL', type: 'ALL', q: '' }); $('#q').value = ''; renderChips(); renderBoard(); });
   $$('.spark', el).forEach(s => sparkIO.observe(s));
+  stagger('.card.st', el, .05);
 }
 $('#cards').addEventListener('click', e => { if (e.target.closest('a')) return; const c = e.target.closest('.card'); if (c) openEvent(c.dataset.id); });
 $('#cards').addEventListener('keydown', e => { if (e.key === 'Enter') { const c = e.target.closest('.card'); if (c) openEvent(c.dataset.id); } });
@@ -351,7 +377,8 @@ async function trades(m) {
 }
 
 // ---------------------------------------------------------------- the tape
-const seenT = new Set(); let tapeFirst = true;
+const seenT = new Set(); let tapeFirst = true, tapeSeen = false;
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { setTimeout(() => { tapeSeen = true; }, 2500); o.disconnect(); } }, { threshold: .15 }).observe($('.tapebox'));
 async function tape() {
   const top = EV.slice(0, 10), cids = top.map(e => e.lead.cid).filter(Boolean);
   if (!cids.length) return;
@@ -363,9 +390,10 @@ async function tape() {
   const html = rows.slice(0, 40).map(x => {
     const k = x.transactionHash + x.asset + x.size, fresh = !tapeFirst && !seenT.has(k); seenT.add(k);
     const val = x.size * x.price, ev = EV.find(e => e.slug === x.eventSlug), whale = val >= 1000;
-    return `<div class="tp${fresh ? ' new' : ''}${whale ? ' whale' : ''}" ${ev ? `data-id="${ev.id}"` : ''}><small>${ago(x.timestamp)}</small><span class="${x.side === 'BUY' ? 'up' : 'dn'}">${x.side}</span><b>${esc(x.outcome)}</b><em>${usd(val)}</em><i>${cents(+x.price)}</i><p>${esc(x.title)}</p>${whale ? '<strong>WHALE</strong>' : ''}</div>`;
+    return `<div class="tp${fresh ? ' new' : ''}${whale ? ' whale' : ''}${tapeSeen || reduce ? '' : ' st'}" ${ev ? `data-id="${ev.id}"` : ''}><small>${ago(x.timestamp)}</small><span class="${x.side === 'BUY' ? 'up' : 'dn'}">${x.side}</span><b>${esc(x.outcome)}</b><em>${usd(val)}</em><i>${cents(+x.price)}</i><p>${esc(x.title)}</p>${whale ? '<strong>WHALE</strong>' : ''}</div>`;
   }).join('');
   el.innerHTML = html || '<p class="dim">The tape is quiet.</p>'; tapeFirst = false;
+  if (!tapeSeen) stagger('.tp.st', el, .035);
   $('#tape-at').textContent = 'updated ' + new Date().toLocaleTimeString();
 }
 $('#tape-rows').addEventListener('click', e => { const r = e.target.closest('.tp[data-id]'); if (r) openEvent(r.dataset.id); });

@@ -156,6 +156,22 @@ h5{font:11px var(--sk);color:var(--gd);margin:0 0 8px;letter-spacing:.04em;font-
 @media (max-width:980px){.hero .hg{grid-template-columns:1fr}.pcbox{max-width:560px;margin:0 auto}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stats>div{border-bottom:1px solid var(--ln)}.stats>div:last-child{grid-column:1/-1}.mapgrid,.fund,.faq{grid-template-columns:1fr}.mapside{max-height:300px}.mb{grid-template-columns:1fr}.mb>div+div{border-left:0;border-top:1px solid var(--ln)}.top .wrap{grid-template-columns:auto 1fr;height:auto;padding-top:10px;padding-bottom:10px;row-gap:10px}.nav{grid-column:1/-1;grid-row:2;overflow-x:auto;max-width:100%;justify-self:center}.nav a{padding:8px 12px;font-size:11px}}
 @media (max-width:620px){.wrap{padding:0 16px}.hero{padding-top:28px}.tp{grid-template-columns:36px 40px 40px 70px minmax(0,1fr)}.tp i,.tp strong{display:none}#m-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.row{grid-template-columns:minmax(0,1fr) 50px auto}.row em,.row .bet.no{display:none}.mh{padding-right:56px}#m-big{font-size:68px}.status .clk{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+
+/* scroll motion */
+.prog{position:fixed;left:0;top:0;width:100%;height:2px;z-index:60;background:linear-gradient(90deg,var(--red),var(--g2) 40%,var(--g));box-shadow:0 0 10px var(--g);transform-origin:0 50%;transform:scaleX(0);pointer-events:none}
+.hd h2{clip-path:inset(-10% 100% -10% 0);transition:clip-path 1.1s cubic-bezier(.7,0,.2,1) .15s}
+.hd.in h2{clip-path:inset(-10% -2% -10% 0);animation:glitch .45s steps(3) 1.15s 1}
+.hd .n:after{content:"";display:inline-block;vertical-align:middle;margin-left:10px;height:1px;width:0;background:var(--red);box-shadow:0 0 8px var(--red);transition:width 1.1s .35s}
+.hd.in .n:after{width:90px}
+.hd p{opacity:0;transform:translateX(18px);transition:opacity .8s .5s,transform .8s .5s}.hd.in p{opacity:1;transform:none}
+@keyframes glitch{0%{text-shadow:3px 0 var(--red),-3px 0 var(--g);transform:translateX(2px)}50%{text-shadow:-3px 0 var(--red),3px 0 var(--g);transform:translateX(-2px)}100%{text-shadow:none;transform:none}}
+.st{opacity:0;transform:translateY(26px) scale(.97);filter:blur(3px);transition:opacity .65s ease var(--d,0s),transform .7s cubic-bezier(.2,.7,.2,1) var(--d,0s),filter .65s ease var(--d,0s),border-color .2s}
+.st.in{opacity:1;transform:none;filter:none}
+.card.st.in:hover,.card.st.in:focus-visible{transform:translateY(-3px)}
+.tp.st{transform:translateX(-24px);filter:none}.tp.st.in{transform:none}
+.mapbox{clip-path:inset(0 0 0 0 round 14px)}.mapgrid.rv .mapbox{clip-path:inset(0 100% 0 0 round 14px);transition:clip-path 1.3s cubic-bezier(.7,0,.2,1) .1s}.mapgrid.rv.in .mapbox{clip-path:inset(0 0 0 0 round 14px)}
+.hero .hg>div:first-child,.pcbox{will-change:transform}
+@media (prefers-reduced-motion:reduce){.st,.hd h2,.hd p{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important}}
 </style>
 </head>
 <body>
@@ -164,7 +180,7 @@ h5{font:11px var(--sk);color:var(--gd);margin:0 0 8px;letter-spacing:.04em;font-
 <header class="top"><div class="wrap">
   <a class="logo" href="#" aria-label="WIM home"><svg class="wim" aria-hidden="true"></svg></a>
   <nav class="nav"><a href="#map-s">MAP</a><a href="#board">BOARD</a><a href="#tape">TAPE</a><a href="#fund">FUND</a><a href="#faq">FAQ</a></nav>
-  <div class="status"><span class="clk" id="clock">--:--:-- UTC</span></div>
+  <div class="status" aria-hidden="true"></div>
 </div></header>
 
 <main>
@@ -248,5 +264,5 @@ h5{font:11px var(--sk);color:var(--gd);margin:0 0 8px;letter-spacing:.04em;font-
   <div class="mfoot"><span class="dim" style="font-size:13px">Resolution follows Polymarket's rules for this market.</span><a class="btn ghost sm" id="m-open" target="_blank" rel="noopener">OPEN ON POLYMARKET ↗</a></div>
 </div></div>
 <div id="toast" role="status"></div>
-<script type="module" src="app.js?v=2"></script>
+<script type="module" src="app.js?v=4"></script>
 </body></html>
