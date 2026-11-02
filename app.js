@@ -92,7 +92,6 @@ function boot() {
   el.addEventListener('pointerdown', end); addEventListener('keydown', end, { once: true });
   setTimeout(end, 2300);
 }
-boot();
 
 // ---------------------------------------------------------------- clock + reveal
 setInterval(() => { $('#clock').textContent = new Date().toISOString().slice(11, 19) + ' UTC'; }, 1000);
