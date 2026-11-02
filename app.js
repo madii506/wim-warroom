@@ -170,7 +170,7 @@ async function startPC() {
   const cv = $('#pc');
   try {
     if (!window.WebGLRenderingContext) throw 0;
-    const mod = await Promise.race([import('./scene.js?v=1'), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 9000))]);
+    const mod = await Promise.race([import('./scene.js?v=2'), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 9000))]);
     pcApi = mod.mountPC(cv, scr);
     cv.addEventListener('pcclick', () => { const e = screenList[screenIdx % screenList.length]; if (e) openEvent(e.id); });
   } catch (err) {
@@ -438,5 +438,15 @@ async function refresh() {
     if (!EV.length) { document.documentElement.classList.add('offline'); $('#cards').innerHTML = '<p class="empty">Polymarket did not answer. Retrying…</p>'; }
   }
 }
-startPC(); requestAnimationFrame(drawMap); refresh();
+async function runIntro() {
+  const el = $('#intro'), H = document.documentElement;
+  if (!el) return;
+  if (!H.classList.contains('intro-on')) { el.remove(); return; }
+  try {
+    const mod = await Promise.race([import('./intro.js?v=1'), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 8000))]);
+    await mod.playIntro(el);
+  } catch { el.classList.add('out'); }
+  setTimeout(() => { H.classList.remove('intro-on'); el.remove(); }, 850);
+}
+runIntro(); startPC(); requestAnimationFrame(drawMap); refresh();
 setInterval(refresh, 60000); setInterval(() => { if (EV.length && !document.hidden) tape(); }, 20000);

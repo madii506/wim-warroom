@@ -6,6 +6,8 @@
 <meta property="og:title" content="WIM · war is money."><meta property="og:description" content="Bet on live war events and more. Real odds on every front, in one war room."><meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#030605">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{var q=location.search;if(/[?&]intro\b/.test(q)||(!sessionStorage.getItem('wim:intro')&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&!/^#\/m\//.test(location.hash)&&!/[?&]nointro\b/.test(q)))document.documentElement.classList.add('intro-on')}catch(e){}</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pixelify+Sans:wght@500;700&family=Silkscreen&family=VT323&display=swap" rel="stylesheet">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
@@ -172,9 +174,18 @@ h5{font:11px var(--sk);color:var(--gd);margin:0 0 8px;letter-spacing:.04em;font-
 .mapbox{clip-path:inset(0 0 0 0 round 14px)}.mapgrid.rv .mapbox{clip-path:inset(0 100% 0 0 round 14px);transition:clip-path 1.3s cubic-bezier(.7,0,.2,1) .1s}.mapgrid.rv.in .mapbox{clip-path:inset(0 0 0 0 round 14px)}
 .hero .hg>div:first-child,.pcbox{will-change:transform}
 @media (prefers-reduced-motion:reduce){.st,.hd h2,.hd p{opacity:1!important;transform:none!important;filter:none!important;clip-path:none!important}}
+
+#intro{display:none}
+html.intro-on{overflow:hidden}
+html.intro-on #intro{display:block;position:fixed;inset:0;z-index:200;background:#000;cursor:pointer;transition:opacity .8s ease .05s}
+#intro canvas{width:100%;height:100%;display:block;opacity:0;transition:opacity 1.2s}
+#intro.on canvas{opacity:1}
+#intro .flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#f2fff7,#86ffbe 38%,#0b2b20 100%);opacity:0;pointer-events:none}
+#intro.out{opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
+<div id="intro" aria-hidden="true"><canvas></canvas><i class="flash"></i></div>
 
 
 <header class="top"><div class="wrap">
@@ -264,5 +275,5 @@ h5{font:11px var(--sk);color:var(--gd);margin:0 0 8px;letter-spacing:.04em;font-
   <div class="mfoot"><span class="dim" style="font-size:13px">Resolution follows Polymarket's rules for this market.</span><a class="btn ghost sm" id="m-open" target="_blank" rel="noopener">OPEN ON POLYMARKET ↗</a></div>
 </div></div>
 <div id="toast" role="status"></div>
-<script type="module" src="app.js?v=4"></script>
+<script type="module" src="app.js?v=5"></script>
 </body></html>

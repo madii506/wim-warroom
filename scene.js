@@ -99,6 +99,7 @@ export function mountPC(canvas, screenCanvas) {
   function frame(now) {
     requestAnimationFrame(frame);
     if (!live || document.hidden) return;
+    const intro = document.getElementById('intro'); if (intro && !intro.classList.contains('out')) return;
     const t = (now - t0) / 1000;
     ax += (tx + Math.sin(t * .35) * .06 - ax) * .06; ay += (ty - ay) * .06;
     const R = small ? 4.3 : 3.75, a = ax * .9;
