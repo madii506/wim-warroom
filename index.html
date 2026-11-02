@@ -181,11 +181,11 @@ html.intro-on #intro{display:block;position:fixed;inset:0;z-index:200;background
 #intro canvas{width:100%;height:100%;display:block;opacity:0;transition:opacity 1.2s}
 #intro.on canvas{opacity:1}
 #intro .flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#f2fff7,#86ffbe 38%,#0b2b20 100%);opacity:0;pointer-events:none}
-#intro.out{opacity:0;pointer-events:none}
+#intro.out{opacity:0;pointer-events:none}#intro .ica{position:absolute;left:50%;bottom:30px;z-index:3;display:flex;align-items:center;gap:12px;max-width:calc(100% - 24px);padding:7px 7px 7px 14px;border:1px solid rgba(134,255,190,.42);background:rgba(3,6,5,.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--ink);cursor:auto;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 0 28px rgba(134,255,190,.14);opacity:0;transform:translate(-50%,10px);transition:opacity .7s .35s,transform .7s .35s}#intro.on .ica{opacity:1;transform:translate(-50%,0)}#intro .ica i{font:400 11px/1 var(--sk);color:var(--g);font-style:normal;letter-spacing:.06em}#intro .ica b{font:400 21px/1 var(--vt);font-weight:400;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;-webkit-user-select:all;user-select:all}#intro .ica button{flex:none;font:400 11px/1 var(--sk);letter-spacing:.05em;color:var(--bg);background:var(--g);border:0;padding:8px 11px;cursor:pointer}#intro .ica button:hover{background:#b6ffd8}@media(max-width:600px){#intro .ica{bottom:20px;gap:8px;padding:6px 6px 6px 10px}#intro .ica b{font-size:14px;letter-spacing:.01em}#intro .ica i{font-size:9px}#intro .ica button{padding:7px 8px;font-size:9px}}
 </style>
 </head>
 <body>
-<div id="intro" aria-hidden="true"><canvas></canvas><i class="flash"></i></div>
+<div id="intro" aria-hidden="true"><canvas></canvas><i class="flash"></i><div class="ica" id="ica"><i>CA</i><b>8MMe8NG671kQJR4QS5n1L7QW6TxDX2QPzPajyYmFpump</b><button type="button">COPY</button></div></div>
 
 
 <header class="top"><div class="wrap">
@@ -275,5 +275,6 @@ html.intro-on #intro{display:block;position:fixed;inset:0;z-index:200;background
   <div class="mfoot"><span class="dim" style="font-size:13px">Resolution follows Polymarket's rules for this market.</span><a class="btn ghost sm" id="m-open" target="_blank" rel="noopener">OPEN ON POLYMARKET ↗</a></div>
 </div></div>
 <div id="toast" role="status"></div>
+<script>(function(){var c=document.getElementById("ica");if(!c)return;var b=c.querySelector("button"),v="8MMe8NG671kQJR4QS5n1L7QW6TxDX2QPzPajyYmFpump";["pointerdown","click"].forEach(function(t){c.addEventListener(t,function(e){e.stopPropagation()})});b.addEventListener("click",function(){var ok=function(){b.textContent="COPIED";setTimeout(function(){b.textContent="COPY"},1600)};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).then(ok,function(){fb();ok()})}else{fb();ok()}function fb(){var r=document.createRange();r.selectNodeContents(c.querySelector("b"));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand("copy")}catch(e){}}})})();</script>
 <script type="module" src="app.js?v=5"></script>
 </body></html>
